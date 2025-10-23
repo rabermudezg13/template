@@ -52,8 +52,8 @@
 </head>
 <body>
   <div class="card">
-    <h1>FrontDesk Info Generator</h1>
-    <p class="subtitle">Generate a clean, line-by-line block — and get a county teammate <span class="badge">randomly assigned</span>.</p>
+    <h1>Call Info Generator</h1>
+    <p class="subtitle">Generate a clean professional block — and automatically assign the right county team member.</p>
 
     <!-- FORM -->
     <div class="grid">
@@ -98,19 +98,26 @@
     <div style="margin-top:16px">
       <label>Output</label>
       <pre id="output" class="output" aria-live="polite"></pre>
-      <div class="footer">Tip: You can paste this block into email, tickets, Slack/Teams, or Excel (one field per line).</div>
+      <div class="footer">Use this block in your email, ticket or Excel entry.</div>
     </div>
   </div>
 
+  <!-- COPYRIGHT -->
+  <div style="text-align:center; margin-top:20px; font-size:12px; color:#6b7d77;">
+    © 2025 Rodrigo Bermudez - Café Cultura LLC. All rights reserved.
+  </div>
+
 <script>
-  // --- Contacts by county (names only; you find them in Teams) ---
+  // --- Contacts by county (names only; searched in Teams) ---
   const COUNTY_CONTACTS = {
     "HILLSBOROUGH": [
       "John Gans",
       "Bryce W Jackson",
       "Mikayla Barbosa",
       "Kenya Sanchez",
-      "Mindy Skarren"
+      "Mindy Skarren",
+      "Rebecca Kelly",
+      "Tawan Love"
     ],
     "POLK": [
       "Diasha Blackshear",
@@ -123,18 +130,26 @@
       "Kimbely Johnson",
       "Pamela Ross",
       "Daniel Jean",
-      "Kaleight Pruit"
+      "Kaleight Pruit",
+      "Benjamin Pence",
+      "Nicole Cavanaugh",
+      "Hope Boykins"
+      
     ],
     "ORANGE COUNTY": [
       "Kathleen Moran",
       "Eduardo Serrano",
       "Joanne Ortiz",
       "Jimena Solis",
-      "Devin Rose"
+      "Devin Rose",
+      "Altremeise Myers Bettis",
+      "Tressa Kwei",
+      "Fess Hightower"
+      
     ]
   };
 
-  // Optional aliases (user can type variations later if you add an input)
+  // Optional aliases
   const ALIASES = {
     "ORANGE": "ORANGE COUNTY",
     "ORANGE CO": "ORANGE COUNTY",
@@ -162,7 +177,6 @@
   function pickRandomContact(district){
     const list = COUNTY_CONTACTS[district] || [];
     if(!list.length) return "(No contact found for this district)";
-    // Avoid immediate repetition
     let candidate = list[Math.floor(Math.random()*list.length)];
     if(list.length>1 && candidate === lastAssigned){
       candidate = list[(list.indexOf(candidate)+1) % list.length];
@@ -196,7 +210,6 @@
     }
     const district = districtSelect.value;
     const contact = pickRandomContact(district);
-    // Replace only the last line (SEND TO)
     const lines = output.textContent.split('\n');
     lines[lines.length-1] = `SEND TO: ${contact} (Teams)`;
     output.textContent = lines.join('\n');
@@ -209,7 +222,7 @@
       document.getElementById('copyBtn').textContent = 'Copied!';
       setTimeout(()=>document.getElementById('copyBtn').textContent = original, 1200);
     }catch(e){
-      alert('Clipboard not available. Select the text and press Ctrl/Cmd + C.');
+      alert('Clipboard not available. Please copy manually.');
     }
   }
 
@@ -217,7 +230,7 @@
   document.getElementById('rerollBtn').addEventListener('click', reroll);
   document.getElementById('copyBtn').addEventListener('click', copyToClipboard);
 
-  // First render
+  // Auto-generate first example
   generate();
 </script>
 </body>
