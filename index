@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>FrontDesk Info Generator</title>
+<style>
+  :root{
+    --kelly-green:#00a36c;
+    --ink:#0b1b15;
+    --muted:#f4f7f6;
+    --white:#ffffff;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    color:var(--ink); background:var(--muted);
+    display:flex; min-height:100vh; align-items:center; justify-content:center;
+    padding:24px;
+  }
+  .card{
+    width:min(920px,100%); background:var(--white); border-radius:16px;
+    box-shadow:0 10px 30px rgba(0,0,0,.06); padding:24px;
+  }
+  h1{margin:0 0 8px; font-size:22px}
+  p.subtitle{margin:0 0 20px; color:#4b5a54}
+  .grid{display:grid; gap:14px; grid-template-columns:1fr 1fr}
+  .grid.full{grid-template-columns:1fr}
+  label{font-size:13px; color:#2d3f39; margin-bottom:6px; display:block}
+  input, select, textarea{
+    width:100%; padding:12px 14px; border-radius:10px; border:1px solid #dbe4e1; background:#fff;
+    font-size:14px; outline:none;
+  }
+  textarea{min-height:110px; resize:vertical}
+  .row{display:flex; gap:10px; flex-wrap:wrap}
+  button{
+    border:none; border-radius:12px; padding:12px 16px; font-weight:600;
+    background:var(--kelly-green); color:#fff; cursor:pointer;
+    transition:transform .02s ease, box-shadow .2s ease;
+  }
+  button.secondary{background:#e8f6f1; color:#0b6b4f}
+  button:active{transform:translateY(1px)}
+  .output{
+    background:#0e1f1a; color:#d7ffef; border-radius:12px; padding:14px;
+    font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    white-space:pre-wrap; word-break:break-word; min-height:120px;
+  }
+  .badge{font-size:12px; background:#edf8f3; color:#0b6b4f; padding:4px 8px; border-radius:999px}
+  .footer{font-size:12px; color:#58736a; margin-top:8px}
+  @media (max-width:720px){ .grid{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>FrontDesk Info Generator</h1>
+    <p class="subtitle">Generate a clean, line-by-line block — and get a county teammate <span class="badge">randomly assigned</span>.</p>
+
+    <!-- FORM -->
+    <div class="grid">
+      <div>
+        <label for="district">District / State (County)</label>
+        <select id="district"></select>
+      </div>
+      <div>
+        <label for="keName">KE Name</label>
+        <input id="keName" placeholder="e.g., Peter Reyes" />
+      </div>
+
+      <div>
+        <label for="ksn">KSN</label>
+        <input id="ksn" placeholder="e.g., 8668688" />
+      </div>
+      <div>
+        <label for="email">Email</label>
+        <input id="email" type="email" placeholder="name@example.com" />
+      </div>
+
+      <div>
+        <label for="phone">Phone</label>
+        <input id="phone" placeholder="e.g., 7869923526" />
+      </div>
+
+      <div class="grid full">
+        <div>
+          <label for="concern">Concern</label>
+          <textarea id="concern" placeholder="Brief description..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:14px">
+      <button id="generateBtn">Generate</button>
+      <button class="secondary" id="rerollBtn" title="Pick a different teammate">Re-roll contact</button>
+      <button class="secondary" id="copyBtn" title="Copy block to clipboard">Copy</button>
+    </div>
+
+    <!-- OUTPUT -->
+    <div style="margin-top:16px">
+      <label>Output</label>
+      <pre id="output" class="output" aria-live="polite"></pre>
+      <div class="footer">Tip: You can paste this block into email, tickets, Slack/Teams, or Excel (one field per line).</div>
+    </div>
+  </div>
+
+<script>
+  // --- Contacts by county (names only; you find them in Teams) ---
+  const COUNTY_CONTACTS = {
+    "HILLSBOROUGH": [
+      "John Gans",
+      "Bryce W Jackson",
+      "Mikayla Barbosa",
+      "Kenya Sanchez",
+      "Mindy Skarren"
+    ],
+    "POLK": [
+      "Diasha Blackshear",
+      "Daphne Tarango",
+      "Dennise Hernandez",
+      "Sara Peet",
+      "Jamie Maguire"
+    ],
+    "BROWARD": [
+      "Kimbely Johnson",
+      "Pamela Ross",
+      "Daniel Jean",
+      "Kaleight Pruit"
+    ],
+    "ORANGE COUNTY": [
+      "Kathleen Moran",
+      "Eduardo Serrano",
+      "Joanne Ortiz",
+      "Jimena Solis",
+      "Devin Rose"
+    ]
+  };
+
+  // Optional aliases (user can type variations later if you add an input)
+  const ALIASES = {
+    "ORANGE": "ORANGE COUNTY",
+    "ORANGE CO": "ORANGE COUNTY",
+    "ORANGE-COUNTY": "ORANGE COUNTY",
+    "HILLS": "HILLSBOROUGH",
+  };
+
+  // Populate district select
+  const districtSelect = document.getElementById('district');
+  Object.keys(COUNTY_CONTACTS).forEach(k => {
+    const opt = document.createElement('option');
+    opt.value = k; opt.textContent = k;
+    districtSelect.appendChild(opt);
+  });
+
+  const keName = document.getElementById('keName');
+  const ksn = document.getElementById('ksn');
+  const email = document.getElementById('email');
+  const phone = document.getElementById('phone');
+  const concern = document.getElementById('concern');
+  const output = document.getElementById('output');
+
+  let lastAssigned = "";
+
+  function pickRandomContact(district){
+    const list = COUNTY_CONTACTS[district] || [];
+    if(!list.length) return "(No contact found for this district)";
+    // Avoid immediate repetition
+    let candidate = list[Math.floor(Math.random()*list.length)];
+    if(list.length>1 && candidate === lastAssigned){
+      candidate = list[(list.indexOf(candidate)+1) % list.length];
+    }
+    lastAssigned = candidate;
+    return candidate;
+  }
+
+  function buildBlock(district, contact){
+    return [
+      `DISTRICT/STATE: ${district}`,
+      `KE NAME: ${keName.value.trim()}`,
+      `KSN: ${ksn.value.trim()}`,
+      `EMAIL: ${email.value.trim()}`,
+      `PHONE: ${phone.value.trim()}`,
+      `CONCERN: ${concern.value.trim()}`,
+      `SEND TO: ${contact} (Teams)`
+    ].join('\n');
+  }
+
+  function generate(){
+    const district = districtSelect.value;
+    const contact = pickRandomContact(district);
+    output.textContent = buildBlock(district, contact);
+  }
+
+  function reroll(){
+    if(!output.textContent.trim()){
+      generate();
+      return;
+    }
+    const district = districtSelect.value;
+    const contact = pickRandomContact(district);
+    // Replace only the last line (SEND TO)
+    const lines = output.textContent.split('\n');
+    lines[lines.length-1] = `SEND TO: ${contact} (Teams)`;
+    output.textContent = lines.join('\n');
+  }
+
+  async function copyToClipboard(){
+    try{
+      await navigator.clipboard.writeText(output.textContent);
+      const original = document.getElementById('copyBtn').textContent;
+      document.getElementById('copyBtn').textContent = 'Copied!';
+      setTimeout(()=>document.getElementById('copyBtn').textContent = original, 1200);
+    }catch(e){
+      alert('Clipboard not available. Select the text and press Ctrl/Cmd + C.');
+    }
+  }
+
+  document.getElementById('generateBtn').addEventListener('click', generate);
+  document.getElementById('rerollBtn').addEventListener('click', reroll);
+  document.getElementById('copyBtn').addEventListener('click', copyToClipboard);
+
+  // First render
+  generate();
+</script>
+</body>
+</html>
