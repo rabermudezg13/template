@@ -15,7 +15,12 @@
   body{
     margin:0; font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
     color:var(--ink); background:var(--muted);
-    display:flex; min-height:100vh; align-items:center; justify-content:center;
+    display:flex; flex-direction:column;
+    min-height:100vh;
+  }
+  .content-wrapper{
+    flex:1;
+    display:flex; align-items:center; justify-content:center;
     padding:24px;
   }
   .card{
@@ -47,13 +52,19 @@
   }
   .badge{font-size:12px; background:#edf8f3; color:#0b6b4f; padding:4px 8px; border-radius:999px}
   .footer{font-size:12px; color:#58736a; margin-top:8px}
+  footer{
+    text-align:center; padding:16px 0; font-size:12px; color:#6b7d77;
+    background-color:var(--muted);
+  }
   @media (max-width:720px){ .grid{grid-template-columns:1fr} }
 </style>
 </head>
 <body>
+
+<div class="content-wrapper">
   <div class="card">
-    <h1>Call Info Generator</h1>
-    <p class="subtitle">Generate a clean professional block — and automatically assign the right county team member.</p>
+    <h1>FrontDesk Info Generator</h1>
+    <p class="subtitle">Generate a clean professional block — and automatically assign the appropriate county team member.</p>
 
     <!-- FORM -->
     <div class="grid">
@@ -101,23 +112,21 @@
       <div class="footer">Use this block in your email, ticket or Excel entry.</div>
     </div>
   </div>
+</div>
 
-  <!-- COPYRIGHT -->
-  <div style="text-align:center; margin-top:20px; font-size:12px; color:#6b7d77;">
-    © 2025 Rodrigo Bermudez - Café Cultura LLC. All rights reserved.
-  </div>
+<!-- COPYRIGHT FOOTER -->
+<footer>
+  © 2025 Rodrigo Bermudez - Café Cultura LLC. All rights reserved.
+</footer>
 
 <script>
-  // --- Contacts by county (names only; searched in Teams) ---
   const COUNTY_CONTACTS = {
     "HILLSBOROUGH": [
       "John Gans",
       "Bryce W Jackson",
       "Mikayla Barbosa",
       "Kenya Sanchez",
-      "Mindy Skarren",
-      "Rebecca Kelly",
-      "Tawan Love"
+      "Mindy Skarren"
     ],
     "POLK": [
       "Diasha Blackshear",
@@ -130,34 +139,37 @@
       "Kimbely Johnson",
       "Pamela Ross",
       "Daniel Jean",
-      "Kaleight Pruit",
-      "Benjamin Pence",
-      "Nicole Cavanaugh",
-      "Hope Boykins"
-      
+      "Kaleight Pruit"
     ],
     "ORANGE COUNTY": [
       "Kathleen Moran",
       "Eduardo Serrano",
       "Joanne Ortiz",
       "Jimena Solis",
-      "Devin Rose",
-      "Altremeise Myers Bettis",
-      "Tressa Kwei",
-      "Fess Hightower"
+      "Devin Rose"
+    ],
+    "MIAMI DADE COUNTY": [
+      "Karina Bermudez",
+      "Miccael Val",
+      "Jorge Silva",
+      "Keona McGowan",
+      "Nicolette Rose",
+      "Rodrigo Bermudez",
+      "Demetrius Lee",
+      "Tiana Crawley",
+      "Lashunda Boykins",
+      "Luisa Mora"
+      ],
+    "Lee County":[
+      "Azzaria Armstrong",
+      "Karina Cashman",
+      "Brant Harlacher",
+      "Samantha Wilson"
       
-    ]
+      
+      
   };
 
-  // Optional aliases
-  const ALIASES = {
-    "ORANGE": "ORANGE COUNTY",
-    "ORANGE CO": "ORANGE COUNTY",
-    "ORANGE-COUNTY": "ORANGE COUNTY",
-    "HILLS": "HILLSBOROUGH",
-  };
-
-  // Populate district select
   const districtSelect = document.getElementById('district');
   Object.keys(COUNTY_CONTACTS).forEach(k => {
     const opt = document.createElement('option');
